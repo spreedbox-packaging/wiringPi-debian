@@ -1,0 +1,140 @@
+From: Simon Eisenmann <simon@struktur.de>
+Date: Fri, 18 Mar 2016 13:11:48 +0100
+Subject: fix_make_for_packaging
+
+---
+ Makefile          | 27 ++++++++++-----------------
+ devLib/Makefile   |  8 ++++----
+ gpio/Makefile     |  9 +++++----
+ wiringPi/Makefile |  6 +++---
+ 4 files changed, 22 insertions(+), 28 deletions(-)
+
+diff --git a/Makefile b/Makefile
+index a02d1a3..8df329d 100644
+--- a/Makefile
++++ b/Makefile
+@@ -1,22 +1,15 @@
++PREFIX=/usr
++DESTDIR?=$(shell pwd)
++
+ clean:
+ 	make -C wiringPi clean
+ 	make -C devLib clean
+ 	make -C gpio clean
+-	make -C examples clean
+-	make -C examples/Gertboard clean
+-	make -C examples/PiFace clean
+-	make -C examples/q2w clean
+-	make -C examples/PiGlow clean
+-	
++
+ install:
+-	make -C wiringPi
+-	make -C wiringPi install
+-	make -C devLib
+-	make -C devLib install
+-	make -C gpio
+-	make -C gpio install
+-	mkdir -p /usr/share/wiringPi/examples/Gertboard
+-	mkdir -p /usr/share/wiringPi/examples/PiFace
+-	mkdir -p /usr/share/wiringPi/examples/PiGlow
+-	mkdir -p /usr/share/wiringPi/examples/q2w
+-	find examples -exec install -m 0644 -D -t /usr/share/wiringPi/examples {} \;
++	make -C wiringPi PREFIX=$(PREFIX) DESTDIR=${DESTDIR}
++	make -C wiringPi PREFIX=$(PREFIX) DESTDIR=${DESTDIR} install
++	make -C devLib PREFIX=$(PREFIX) DESTDIR=${DESTDIR}
++	make -C devLib PREFIX=$(PREFIX) DESTDIR=${DESTDIR} install
++	make -C gpio PREFIX=$(PREFIX) DESTDIR=${DESTDIR}
++	make -C gpio PREFIX=$(PREFIX) DESTDIR=${DESTDIR} install
+diff --git a/devLib/Makefile b/devLib/Makefile
+index 4ba1774..97ef8e7 100644
+--- a/devLib/Makefile
++++ b/devLib/Makefile
+@@ -33,7 +33,7 @@ DYNAMIC=libwiringPiDev.so.$(VERSION)
+ #DEBUG	= -g -O0
+ DEBUG	= -O2
+ CC	= gcc
+-INCLUDE	= -I.
++INCLUDE	= -I. -I$(DESTDIR)$(PREFIX)/include
+ CFLAGS	= $(DEBUG) -Wformat=2 -Wall $(INCLUDE) -Winline -pipe -fPIC
+ 
+ LIBS    =
+@@ -94,8 +94,8 @@ install:	$(DYNAMIC) install-headers
+ 	@echo "[Install Dynamic Lib]"
+ 	@install -m 0755 -d						$(DESTDIR)$(PREFIX)/lib
+ 	@install -m 0755 libwiringPiDev.so.$(VERSION)			$(DESTDIR)$(PREFIX)/lib/libwiringPiDev.so.$(VERSION)
+-	@ln -sf $(DESTDIR)$(PREFIX)/lib/libwiringPiDev.so.$(VERSION)	$(DESTDIR)/lib/libwiringPiDev.so
+-	@ldconfig
++	@ln -sf libwiringPiDev.so.$(VERSION)	$(DESTDIR)$(PREFIX)/lib/libwiringPiDev.so
++	#@ldconfig
+ 
+ .PHONY:	install-static
+ install-static:	$(STATIC) install-headers
+@@ -115,7 +115,7 @@ uninstall:
+ 	@rm -f $(DESTDIR)$(PREFIX)/include/lcd.h
+ 	@rm -f $(DESTDIR)$(PREFIX)/include/piGlow.h
+ 	@rm -f $(DESTDIR)$(PREFIX)/lib/libwiringPiDev.*
+-	@ldconfig
++	#@ldconfig
+ 
+ 
+ .PHONY:	depend
+diff --git a/gpio/Makefile b/gpio/Makefile
+index 37b4887..ef17a00 100644
+--- a/gpio/Makefile
++++ b/gpio/Makefile
+@@ -47,7 +47,7 @@ all:		gpio
+ gpio:	$(OBJ)
+ 	@echo [Link]
+ 	@$(CC) -o $@ $(OBJ) $(LDFLAGS) $(LIBS)
+-	
++
+ .c.o:
+ 	@echo [Compile] $<
+ 	@$(CC) -c $(CFLAGS) $< -o $@
+@@ -65,17 +65,18 @@ tags:	$(SRC)
+ .PHONY:	install
+ install:
+ 	@echo "[Install]"
++	@mkdir -p $(DESTDIR)$(PREFIX)/bin
+ 	@cp gpio		$(DESTDIR)$(PREFIX)/bin
+ 	@chown root.root	$(DESTDIR)$(PREFIX)/bin/gpio
+ 	@chmod 4755		$(DESTDIR)$(PREFIX)/bin/gpio
+-	@mkdir -p		$(DESTDIR)$(PREFIX)/man/man1
+-	@cp gpio.1		$(DESTDIR)$(PREFIX)/man/man1
++	@mkdir -p		$(DESTDIR)$(PREFIX)/share/man/man1
++	@cp gpio.1		$(DESTDIR)$(PREFIX)/share/man/man1
+ 
+ .PHONY:	uninstall
+ uninstall:
+ 	@echo "[UnInstall]"
+ 	@rm -f $(DESTDIR)$(PREFIX)/bin/gpio
+-	@rm -f $(DESTDIR)$(PREFIX)/man/man1/gpio.1
++	@rm -f $(DESTDIR)$(PREFIX)/share/man/man1/gpio.1
+ 
+ .PHONY:	depend
+ depend:
+diff --git a/wiringPi/Makefile b/wiringPi/Makefile
+index 4e3342e..28578e0 100644
+--- a/wiringPi/Makefile
++++ b/wiringPi/Makefile
+@@ -121,8 +121,8 @@ install:	$(DYNAMIC) install-headers
+ 	@echo "[Install Dynamic Lib]"
+ 	@install -m 0755 -d						$(DESTDIR)$(PREFIX)/lib
+ 	@install -m 0755 libwiringPi.so.$(VERSION)			$(DESTDIR)$(PREFIX)/lib/libwiringPi.so.$(VERSION)
+-	@ln -sf $(DESTDIR)$(PREFIX)/lib/libwiringPi.so.$(VERSION)	$(DESTDIR)/lib/libwiringPi.so
+-	@ldconfig
++	@ln -sf libwiringPi.so.$(VERSION)	$(DESTDIR)$(PREFIX)/lib/libwiringPi.so
++	#@ldconfig
+ 
+ .PHONY:	install-static
+ install-static:	$(STATIC) install-headers
+@@ -157,7 +157,7 @@ uninstall:
+ 	@rm -f $(DESTDIR)$(PREFIX)/include/pcf8591.h
+ 	@rm -f $(DESTDIR)$(PREFIX)/include/sn3218.h
+ 	@rm -f $(DESTDIR)$(PREFIX)/lib/libwiringPi.*
+-	@ldconfig
++	#@ldconfig
+ 
+ 
+ .PHONY:	depend

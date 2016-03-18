@@ -1,0 +1,5 @@
+wiringpi-hardkernel (0.0~git20160318.0.700d3fe-1) unstable; urgency=medium
+
+  * Initial release.
+
+ -- Simon Eisenmann <simon@struktur.de>  Fri, 18 Mar 2016 11:15:15 +0100

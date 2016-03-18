@@ -1,0 +1,23 @@
+Source: wiringpi-hardkernel
+Section: admin
+Priority: optional
+Maintainer: struktur AG <opensource@struktur.de>
+Build-Depends: debhelper (>= 9)
+Standards-Version: 3.9.6
+Homepage: http://wiringpi.com/
+Vcs-Git: https://github.com/hardkernel/wiringPi.git
+Vcs-Browser: https://github.com/hardkernel/wiringPi
+
+Package: libwiringpi2-hardkernel
+Provides: libwiringpi2, wiringpi
+Conflicts: wiringpi
+Architecture: any
+Depends: ${misc:Depends}, ${shlibs:Depends}
+Recommends:
+Description: A GPIO library for the ODROID's
+ WiringPi is a GPIO access library written in C for the BCM2835 used in the
+ Raspberry Pi. This package has been modified to support the ODROID platform
+ from Hardkernel. It's released under the GNU LGPLv3 license and is usable from C
+ and C++ and many other languages with suitable wrappers. There's also a
+ command-line version. It's designed to be familiar to people who have used
+ the Arduino "wiring" system. See http://wiringpi.com/
